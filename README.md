@@ -2,7 +2,7 @@
 
 > An interactive visual playground for understanding **Retrieval-Augmented Generation (RAG)** — covering every major chunking strategy and retrieval/reranking method with live, hands-on examples.
 
-🔗 **Live demo:** `https://YOUR-USERNAME.github.io/rag-visualizer/`
+🔗 **Live demo:** `https://SAGARCHRY0777.github.io/rag-visualizer/`
 
 ---
 

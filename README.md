@@ -1,10 +1,21 @@
-# RAG Visualizer
+# 🚀 RAG Visualizer
 
 > An interactive visual playground for understanding **Retrieval-Augmented Generation (RAG)** — covering every major chunking strategy and retrieval/reranking method with live, hands-on examples.
 
-🔗 **Live demo:** `https://SAGARCHRY0777.github.io/rag-visualizer/`
+🔗 **Live Demo:** https://SAGARCHRY0777.github.io/rag-visualizer/
 
+📦 **GitHub Repo:** https://github.com/SAGARCHRY0777/rag-visualizer
 ---
+## 🎯 Why this project matters
+
+This project helps understand real-world Retrieval-Augmented Generation (RAG) pipelines by visualizing:
+
+- How different chunking strategies affect retrieval quality
+- Trade-offs between bi-encoder vs cross-encoder models
+- How hybrid retrieval (BM25 + dense) improves results
+- Token-level interaction in advanced models like ColBERT
+
+It is designed as an educational + interview-ready tool for learning modern LLM systems.
 
 ## What is this?
 
@@ -15,6 +26,12 @@ This visualizer breaks down **two critical stages** of every RAG pipeline:
 1. **Chunking** — how raw documents are split into retrievable pieces
 2. **Retrieval & Reranking** — how the right pieces are found and ranked for a query
 
+## 🧠 Built for
+
+- Students learning LLM / RAG systems
+- ML engineers exploring retrieval pipelines
+- Interview preparation (system design + NLP)
+  
 ---
 
 ## Features

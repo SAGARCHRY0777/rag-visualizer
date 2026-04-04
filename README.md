@@ -51,7 +51,7 @@ This visualizer breaks down **two critical stages** of every RAG pipeline:
 ## Run locally
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/rag-visualizer.git
+git clone https://github.com/SAGARCHRY0777/rag-visualizer.git
 cd rag-visualizer
 npm install
 npm run dev

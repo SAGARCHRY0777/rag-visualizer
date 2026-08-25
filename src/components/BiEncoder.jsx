@@ -1,79 +1,106 @@
-import React from 'react'
-import { BI_DOCS, QUERY_VEC, cosine } from '../data/ragData'
-import { Card, Label, RankBadge, ScoreBar, Badge, SectionHeader } from './UI'
-
-const scored = [...BI_DOCS]
-  .map(d => ({ ...d, score: cosine(QUERY_VEC, d.vec) }))
-  .sort((a, b) => b.score - a.score)
-
-const maxScore = Math.max(...scored.map(d => d.score))
+import { useMemo } from 'react'
+import { useCorpus } from '../state/CorpusContext'
+import { Card, Label, SectionHeader, RankedRow, CompareGrid } from './UI'
+import { QueryPanel, VectorStrip, EmptyState } from './Inputs'
+import { cosineSim, embedText, EMBED_DIMS } from '../lib/retrieval'
 
 function scoreColor(s) {
-  if (s >= 0.95) return '#2dd4a0'
-  if (s >= 0.85) return '#7c6af7'
-  if (s >= 0.7) return '#f5a623'
+  if (s >= 0.6) return '#2dd4a0'
+  if (s >= 0.35) return '#7c6af7'
+  if (s >= 0.15) return '#f5a623'
   return '#5a5a72'
 }
 
 export default function BiEncoder() {
+  const { query, activeDocs } = useCorpus()
+
+  const queryVec = useMemo(() => embedText(query), [query])
+
+  const ranked = useMemo(() => activeDocs
+    .map(d => {
+      const vec = embedText(d.text)
+      return { ...d, vec, score: cosineSim(queryVec, vec) }
+    })
+    .sort((a, b) => b.score - a.score),
+  [activeDocs, queryVec])
+
+  const maxScore = ranked.length ? Math.max(...ranked.map(d => d.score), 0.0001) : 1
+
   return (
     <div>
       <SectionHeader
         title="Bi-encoder retrieval"
-        description="Query and documents are encoded independently into dense vectors. Similarity is cosine distance between vectors. All document embeddings are pre-computed at index time — at query time only the query is re-encoded, then a single dot-product pass finds top-K."
+        description="Query and documents are encoded independently into dense vectors, then compared with cosine similarity. Because document vectors are computed once at index time, the only work at query time is encoding the query and one similarity sweep — which is what makes this fast enough to run over millions of documents."
       />
 
-      <Card style={{ marginBottom: 20 }}>
-        <Label>Query vector (6-dim, simulated)</Label>
-        <div style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--accent2)' }}>
-          [{QUERY_VEC.map(v => v.toFixed(2)).join(', ')}]
-        </div>
-        <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>
-          Query: "How does the immune system fight viruses?"
-        </div>
+      <QueryPanel />
+
+      <Card style={{ marginBottom: 16 }}>
+        <Label>Query embedding — {EMBED_DIMS} dimensions</Label>
+        <VectorStrip vec={queryVec} color="#a78bfa" height={30} />
+        <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 8, lineHeight: 1.6 }}>
+          Each bar is a slice of the vector. Documents whose fingerprint lines up with
+          this one score highly. The embedding is a hashed character-trigram bag, so
+          related word forms — “viral” and “virus” — share features the way a trained
+          encoder would.
+        </p>
       </Card>
 
-      <Card style={{ marginBottom: 20 }}>
-        <Label>Architecture comparison</Label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {[
-            { title: 'Bi-encoder (this tab)', points: ['Encode query + docs separately', 'Pre-compute doc embeddings', 'Cosine similarity at runtime', 'O(1) query time — very fast', 'Less accurate (no cross-attention)'], color: '#7c6af7' },
-            { title: 'Cross-encoder (prev tab)', points: ['Encode (query, doc) jointly', 'Cannot pre-compute', 'Full transformer per pair', 'O(N) query time — slow', 'Most accurate'], color: '#2dd4a0' },
-          ].map(col => (
-            <div key={col.title} style={{ background: 'var(--bg4)', borderRadius: 8, padding: '10px 12px' }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: col.color, marginBottom: 8 }}>{col.title}</div>
-              {col.points.map((p, i) => (
-                <div key={i} style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 3 }}>· {p}</div>
-              ))}
-            </div>
-          ))}
-        </div>
+      <Card style={{ marginBottom: 16 }}>
+        <Label>Bi-encoder vs cross-encoder</Label>
+        <CompareGrid columns={[
+          {
+            title: 'Bi-encoder (this tab)',
+            color: '#7c6af7',
+            points: [
+              'Encodes query and docs separately',
+              'Doc vectors pre-computed at index time',
+              'One cosine sweep at query time',
+              'Scales to millions of docs',
+              'Misses interactions between the two texts',
+            ],
+          },
+          {
+            title: 'Cross-encoder',
+            color: '#2dd4a0',
+            points: [
+              'Encodes (query, doc) as one sequence',
+              'Nothing can be pre-computed',
+              'A full model pass per candidate',
+              'Only viable over a shortlist',
+              'Sees every query–doc token interaction',
+            ],
+          },
+        ]} />
       </Card>
 
-      <Label>Documents ranked by cosine similarity to query</Label>
-      {scored.map((d, i) => (
-        <div key={d.id} style={{
-          display: 'flex', alignItems: 'flex-start', gap: 10,
-          padding: '10px 12px', borderRadius: 8,
-          background: i % 2 === 0 ? 'var(--bg3)' : 'transparent',
-          marginBottom: 4,
-        }}>
-          <RankBadge rank={i + 1} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
-              <Badge color="var(--text3)" bg="rgba(255,255,255,0.05)">{d.id}</Badge>
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--text)', marginBottom: 5 }}>{d.text}</div>
-            <div style={{
-              fontFamily: 'var(--mono)', fontSize: 11,
-              color: 'var(--text3)', marginBottom: 5,
-            }}>
-              vec: [{d.vec.map(v => v.toFixed(1)).join(', ')}]
-            </div>
-            <ScoreBar score={d.score} max={maxScore} color={scoreColor(d.score)} />
-          </div>
-        </div>
-      ))}
+      <Label>Ranked by cosine similarity</Label>
+      {ranked.length === 0 ? (
+        <EmptyState>Add at least one document with text to rank.</EmptyState>
+      ) : (
+        ranked.map((d, i) => (
+          <RankedRow
+            key={d.id}
+            rank={i + 1}
+            id={d.id}
+            text={d.text}
+            detail={<VectorStrip vec={d.vec} color={scoreColor(d.score)} height={14} />}
+            score={d.score}
+            scoreMax={maxScore}
+            scoreColor={scoreColor(d.score)}
+          />
+        ))
+      )}
+
+      <Card style={{ marginTop: 16 }}>
+        <Label>What to try</Label>
+        <p style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6, margin: 0 }}>
+          Reword the query so it shares no vocabulary with the best document — a
+          bi-encoder still finds it, because the vectors encode overlapping subwords
+          rather than exact terms. Then add an off-topic document and watch it settle
+          near zero regardless of how long it is.
+        </p>
+      </Card>
     </div>
   )
 }

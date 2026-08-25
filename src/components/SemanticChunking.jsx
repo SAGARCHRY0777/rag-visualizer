@@ -1,101 +1,143 @@
-import React, { useState } from 'react'
-import { SENTENCES, TOPIC_GROUPS, CHUNK_COLORS } from '../data/ragData'
-import { ChunkCard, Badge, Card, Label, SectionHeader } from './UI'
+import { useMemo, useState } from 'react'
+import { CHUNK_COLORS } from '../data/palette'
+import { useCorpus } from '../state/CorpusContext'
+import { ChunkCard, Badge, Card, Label, SectionHeader, SliderRow } from './UI'
+import { DocumentInput, EmptyState } from './Inputs'
+import { cosineSim, embedText, contentTokens } from '../lib/retrieval'
 
-const SIM_SCORES = [0.91, 0.88, 0.72, 0.93, 0.86, 0.41, 0.78, 0.62, 0.83]
-const SPLIT_BY_THRESH = {
-  1: [],
-  2: [5],
-  3: [2, 5, 6],
-  4: [2, 5, 6, 7],
-  5: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-}
-const THRESH_LABELS = ['', 'very low', 'low', 'medium', 'high', 'very high']
-
-function buildGroups(splits) {
-  const groups = []
-  let cur = [0]
-  for (let i = 1; i < SENTENCES.length; i++) {
-    if (splits.includes(i - 1)) {
-      groups.push(cur)
-      cur = [i]
-    } else {
-      cur.push(i)
+/** Terms that appear in a group but rarely elsewhere — a cheap topic label. */
+function topTerms(indices, sentences, limit = 3) {
+  const inGroup = new Map()
+  const inRest = new Map()
+  sentences.forEach((s, i) => {
+    const target = indices.includes(i) ? inGroup : inRest
+    for (const t of new Set(contentTokens(s))) {
+      target.set(t, (target.get(t) ?? 0) + 1)
     }
-  }
-  groups.push(cur)
-  return groups
+  })
+  return [...inGroup.entries()]
+    .map(([term, count]) => ({ term, weight: count / (1 + (inRest.get(term) ?? 0)) }))
+    .sort((a, b) => b.weight - a.weight || a.term.localeCompare(b.term))
+    .slice(0, limit)
+    .map(t => t.term)
 }
 
 export default function SemanticChunking() {
-  const [thresh, setThresh] = useState(3)
+  const { sentences } = useCorpus()
+  // Null until the user moves the slider, so the threshold can track whatever
+  // text is loaded. Absolute similarity values differ a lot between corpora —
+  // a fixed default would split everything or nothing on most documents.
+  const [override, setOverride] = useState(null)
 
-  const splits = SPLIT_BY_THRESH[thresh]
-  const groups = buildGroups(splits)
+  // Cosine between each adjacent sentence pair. Index i is the boundary
+  // between sentence i and i+1.
+  const sims = useMemo(() => {
+    const vectors = sentences.map(embedText)
+    return vectors.slice(0, -1).map((v, i) => cosineSim(v, vectors[i + 1]))
+  }, [sentences])
 
-  const topicLabel = (indices) => {
-    const tg = TOPIC_GROUPS.find(t => JSON.stringify(t.indices) === JSON.stringify(indices))
-    return tg ? tg.label : null
-  }
+  const weakest = sims.length ? Math.min(...sims) : 0
+  const strongest = sims.length ? Math.max(...sims) : 0
+
+  // Bracket the slider around the range this document actually produces.
+  const min = Math.max(0, Math.floor(weakest * 100) / 100)
+  const max = Math.min(1, Math.ceil(strongest * 100) / 100)
+  const step = Math.max(0.005, Math.round(((max - min) / 20) * 1000) / 1000)
+  const threshold = override ?? Math.round(((min + max) / 2) * 1000) / 1000
+
+  const splits = useMemo(
+    () => sims.map((s, i) => (s < threshold ? i : -1)).filter(i => i >= 0),
+    [sims, threshold],
+  )
+
+  const groups = useMemo(() => {
+    if (!sentences.length) return []
+    const out = []
+    let current = [0]
+    for (let i = 1; i < sentences.length; i++) {
+      if (splits.includes(i - 1)) {
+        out.push(current)
+        current = [i]
+      } else {
+        current.push(i)
+      }
+    }
+    out.push(current)
+    return out
+  }, [sentences, splits])
 
   return (
     <div>
       <SectionHeader
         title="Semantic chunking"
-        description="Each sentence is embedded into a dense vector. Cosine similarity is computed between adjacent sentence pairs. When similarity drops below a threshold — indicating a topic shift — a new chunk begins."
+        description="Every sentence is embedded, then cosine similarity is measured between each adjacent pair. Where similarity drops below the threshold, the topic has shifted and a new chunk begins. Unlike fixed-size splitting, boundaries follow meaning — raise the threshold and the splitter gets progressively pickier."
       />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
-        <span style={{ fontSize: 13, color: 'var(--text2)', minWidth: 100 }}>Split sensitivity</span>
-        <input
-          type="range" min={1} max={5} value={thresh} step={1}
-          onChange={e => setThresh(+e.target.value)}
-          style={{ flex: 1, minWidth: 100, maxWidth: 200 }}
-        />
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--accent2)', minWidth: 60 }}>
-          {THRESH_LABELS[thresh]}
-        </span>
-        <span style={{ fontSize: 12, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>
-          → {groups.length} chunk{groups.length !== 1 ? 's' : ''}
-        </span>
-      </div>
+      <DocumentInput hint="Similarities below are computed from this text, not replayed from a fixture." />
 
-      <Card style={{ marginBottom: 16 }}>
-        <Label>Cosine similarity between adjacent sentences</Label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {SIM_SCORES.map((s, i) => {
-            const isSplit = splits.includes(i)
+      <SliderRow
+        label="Split threshold"
+        min={min} max={max} step={step}
+        value={threshold}
+        onChange={setOverride}
+        displayValue={threshold.toFixed(3)}
+        hint={`→ ${groups.length} chunk${groups.length === 1 ? '' : 's'} · range ${min.toFixed(2)}–${max.toFixed(2)}`}
+      />
+
+      {sims.length === 0 ? (
+        <EmptyState>Add at least two sentences above to see boundary detection.</EmptyState>
+      ) : (
+        <>
+          <Card style={{ marginBottom: 16 }}>
+            <Label>Cosine similarity between adjacent sentences</Label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {sims.map((s, i) => {
+                const isSplit = s < threshold
+                return (
+                  <div key={i} title={`S${i + 1} → S${i + 2}: ${s.toFixed(3)}`} style={{
+                    fontSize: 11, padding: '3px 8px', borderRadius: 99,
+                    background: isSplit ? 'rgba(249,112,102,0.15)' : 'rgba(45,212,160,0.1)',
+                    color: isSplit ? '#f97066' : '#2dd4a0',
+                    fontFamily: 'var(--mono)',
+                    border: `1px solid ${isSplit ? 'rgba(249,112,102,0.3)' : 'rgba(45,212,160,0.2)'}`,
+                  }}>
+                    S{i + 1}↔S{i + 2}: {s.toFixed(2)}{isSplit ? ' ✂' : ''}
+                  </div>
+                )
+              })}
+            </div>
+            <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 10, lineHeight: 1.6 }}>
+              Weakest link <strong style={{ color: 'var(--coral)' }}>{weakest.toFixed(3)}</strong>
+              {' · '}strongest <strong style={{ color: 'var(--teal)' }}>{strongest.toFixed(3)}</strong>.
+              Below {weakest.toFixed(3)} the document stays whole; above {strongest.toFixed(3)}{' '}
+              every sentence becomes its own chunk. What matters is where a boundary sits
+              relative to its neighbours, not the absolute number — which is why the slider
+              rescales to each document.
+            </p>
+          </Card>
+
+          {groups.map((indices, idx) => {
+            const col = CHUNK_COLORS[idx % CHUNK_COLORS.length]
+            const terms = topTerms(indices, sentences)
             return (
-              <div key={i} style={{
-                fontSize: 11, padding: '3px 8px', borderRadius: 99,
-                background: isSplit ? 'rgba(249,112,102,0.15)' : 'rgba(45,212,160,0.1)',
-                color: isSplit ? '#f97066' : '#2dd4a0',
-                fontFamily: 'var(--mono)',
-                border: `1px solid ${isSplit ? 'rgba(249,112,102,0.3)' : 'rgba(45,212,160,0.2)'}`,
-              }}>
-                S{i + 1}↔S{i + 2}: {s.toFixed(2)} {isSplit ? '✂ SPLIT' : ''}
-              </div>
+              <ChunkCard key={idx} borderColor={col.border}>
+                <div style={{ marginBottom: 6 }}>
+                  <Badge color={col.badge.text} bg={col.badge.bg}>Chunk {idx + 1}</Badge>
+                  {terms.length > 0 && (
+                    <Badge color="var(--text2)" bg="rgba(255,255,255,0.05)">{terms.join(' · ')}</Badge>
+                  )}
+                  <Badge color="var(--text3)" bg="rgba(255,255,255,0.04)">
+                    S{indices[0] + 1}–S{indices[indices.length - 1] + 1}
+                  </Badge>
+                </div>
+                <span style={{ color: 'var(--text2)' }}>
+                  {indices.map(i => sentences[i]).join(' ')}
+                </span>
+              </ChunkCard>
             )
           })}
-        </div>
-      </Card>
-
-      {groups.map((indices, idx) => {
-        const col = CHUNK_COLORS[idx % CHUNK_COLORS.length]
-        const label = topicLabel(indices)
-        return (
-          <ChunkCard key={idx} borderColor={col.border}>
-            <div style={{ marginBottom: 6 }}>
-              <Badge color={col.badge.text} bg={col.badge.bg}>Chunk {idx + 1}</Badge>
-              {label && <Badge color="var(--text2)" bg="rgba(255,255,255,0.05)">{label}</Badge>}
-              <Badge color="var(--text3)" bg="rgba(255,255,255,0.04)">{indices.length} sent.</Badge>
-            </div>
-            <span style={{ color: 'var(--text2)' }}>
-              {indices.map(i => SENTENCES[i]).join(' ')}
-            </span>
-          </ChunkCard>
-        )
-      })}
+        </>
+      )}
     </div>
   )
 }

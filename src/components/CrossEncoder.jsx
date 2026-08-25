@@ -1,81 +1,159 @@
-import React from 'react'
-import { CROSS_CHUNKS } from '../data/ragData'
-import { Card, Label, RankBadge, ScoreBar, Badge, SectionHeader } from './UI'
-
-const QUERY = "How does the immune system fight viruses?"
-
-const sorted = [...CROSS_CHUNKS].sort((a, b) => b.score - a.score)
+import { useMemo, useState } from 'react'
+import { useCorpus } from '../state/CorpusContext'
+import { Card, Label, SectionHeader, RankedRow, SliderRow, Badge } from './UI'
+import { QueryPanel, EmptyState } from './Inputs'
+import { cosineSim, embedText, crossEncoderScore } from '../lib/retrieval'
 
 function scoreColor(s) {
-  if (s >= 0.85) return '#2dd4a0'
-  if (s >= 0.65) return '#7c6af7'
-  if (s >= 0.5) return '#f5a623'
+  if (s >= 0.8) return '#2dd4a0'
+  if (s >= 0.55) return '#7c6af7'
+  if (s >= 0.3) return '#f5a623'
   return '#9090a8'
 }
 
+/** ▲/▼ movement between the retrieval rank and the rerank rank. */
+function Movement({ from, to }) {
+  const delta = from - to
+  if (delta === 0) {
+    return <Badge color="var(--text3)" bg="rgba(255,255,255,0.05)">— held #{to}</Badge>
+  }
+  const up = delta > 0
+  return (
+    <Badge
+      color={up ? 'var(--teal)' : 'var(--coral)'}
+      bg={up ? 'rgba(45,212,160,0.12)' : 'rgba(249,112,102,0.12)'}
+    >
+      {up ? '▲' : '▼'} {Math.abs(delta)} (#{from} → #{to})
+    </Badge>
+  )
+}
+
 export default function CrossEncoder() {
+  const { query, activeDocs } = useCorpus()
+  const [topK, setTopK] = useState(4)
+
+  const queryVec = useMemo(() => embedText(query), [query])
+
+  // Stage 1: cheap retrieval over everything, exactly as the bi-encoder tab does.
+  const retrieved = useMemo(() => activeDocs
+    .map(d => ({ ...d, retrievalScore: cosineSim(queryVec, embedText(d.text)) }))
+    .sort((a, b) => b.retrievalScore - a.retrievalScore)
+    .map((d, i) => ({ ...d, retrievalRank: i + 1 })),
+  [activeDocs, queryVec])
+
+  const effectiveK = Math.min(topK, retrieved.length)
+  const shortlist = retrieved.slice(0, effectiveK)
+
+  // Stage 2: the expensive model runs only over the shortlist.
+  const reranked = useMemo(() => shortlist
+    .map(d => ({ ...d, score: crossEncoderScore(query, d.text) }))
+    .sort((a, b) => b.score - a.score)
+    .map((d, i) => ({ ...d, finalRank: i + 1 })),
+  [shortlist, query])
+
+  const moved = reranked.filter(d => d.retrievalRank !== d.finalRank).length
+
   return (
     <div>
       <SectionHeader
         title="Cross-encoder reranking"
-        description="The query and each candidate chunk are concatenated into a single input and passed through a transformer together. Full cross-attention between query tokens and document tokens produces a precise relevance score. Slow per-pair, but highly accurate."
+        description="The query and a candidate are concatenated into one sequence and passed through the model together, so every query token can attend to every document token. That cross-attention is what catches paraphrase — and why it costs a full model pass per candidate, restricting it to a shortlist a cheaper retriever has already narrowed down."
       />
 
-      <Card style={{ marginBottom: 20 }}>
+      <QueryPanel />
+
+      <Card style={{ marginBottom: 16 }}>
         <Label>Model input format</Label>
         <div style={{
           fontFamily: 'var(--mono)', fontSize: 12,
           background: 'var(--bg4)', borderRadius: 6,
           padding: '10px 12px', color: 'var(--text2)',
+          overflowX: 'auto',
         }}>
           <span style={{ color: '#f97066' }}>[CLS]</span>{' '}
-          <span style={{ color: 'var(--accent2)' }}>{QUERY}</span>{' '}
+          <span style={{ color: 'var(--accent2)' }}>{query || '<your query>'}</span>{' '}
           <span style={{ color: '#f97066' }}>[SEP]</span>{' '}
-          <span style={{ color: 'var(--teal)' }}>{'<chunk text>'}</span>{' '}
+          <span style={{ color: 'var(--teal)' }}>{'<candidate text>'}</span>{' '}
           <span style={{ color: '#f97066' }}>[SEP]</span>
           <div style={{ marginTop: 6, color: 'var(--text3)', fontSize: 11 }}>
-            → single transformer pass → sigmoid → score ∈ [0, 1]
+            → one transformer pass → sigmoid → score ∈ [0, 1]
           </div>
         </div>
       </Card>
 
-      <div style={{ marginBottom: 10 }}>
-        <div style={{
-          background: 'var(--bg3)', border: '1px solid var(--border)',
-          borderRadius: 8, padding: '10px 14px', marginBottom: 14,
-        }}>
-          <Label>Query</Label>
-          <span style={{ fontSize: 14, color: 'var(--accent2)', fontWeight: 500 }}>{QUERY}</span>
-        </div>
+      <SliderRow
+        label="Shortlist size (K)"
+        min={1} max={Math.max(1, retrieved.length)} value={effectiveK}
+        onChange={setTopK}
+        hint={`${effectiveK} model passes · ${retrieved.length - effectiveK} candidate${retrieved.length - effectiveK === 1 ? '' : 's'} never scored`}
+      />
 
-        <Label>Candidates — scored and reranked</Label>
-        {sorted.map((c, i) => (
-          <div key={c.id} style={{
-            display: 'flex', alignItems: 'flex-start', gap: 10,
-            padding: '10px 12px', borderRadius: 8,
-            background: i % 2 === 0 ? 'var(--bg3)' : 'transparent',
-            marginBottom: 4,
-          }}>
-            <RankBadge rank={i + 1} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 5 }}>
-                <Badge color="var(--text3)" bg="rgba(255,255,255,0.05)">{c.id}</Badge>
+      {retrieved.length === 0 ? (
+        <EmptyState>Add at least one document with text to rerank.</EmptyState>
+      ) : (
+        <>
+          <Label>Stage 1 — bi-encoder retrieval over all {retrieved.length} documents</Label>
+          <div style={{ marginBottom: 18 }}>
+            {retrieved.map(d => (
+              <div key={d.id} style={{
+                display: 'flex', gap: 8, alignItems: 'center',
+                padding: '6px 10px', borderRadius: 6, marginBottom: 2,
+                opacity: d.retrievalRank <= effectiveK ? 1 : 0.4,
+                background: d.retrievalRank <= effectiveK ? 'var(--bg3)' : 'transparent',
+              }}>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text3)', minWidth: 24 }}>
+                  #{d.retrievalRank}
+                </span>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text3)', minWidth: 26 }}>
+                  {d.id}
+                </span>
+                <span style={{ fontSize: 12, color: 'var(--text2)', flex: 1, minWidth: 0 }}>{d.text}</span>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
+                  {d.retrievalScore.toFixed(3)}
+                </span>
+                {d.retrievalRank > effectiveK && (
+                  <span style={{ fontSize: 10, color: 'var(--coral)', flexShrink: 0 }}>cut</span>
+                )}
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text)', marginBottom: 6, lineHeight: 1.5 }}>
-                {c.text}
-              </div>
-              <ScoreBar score={c.score} color={scoreColor(c.score)} />
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <Card style={{ marginTop: 16 }}>
-        <Label>Why C3 ranks #1</Label>
-        <p style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>
-          C3 says "viral infections" not "virus" — yet it scores 0.93. The cross-encoder sees the query and chunk together in the same attention layers, so it understands that <em style={{ color: 'var(--text)' }}>viral</em> entails the concept of <em style={{ color: 'var(--text)' }}>virus</em>. A bi-encoder would miss this because it encodes them separately.
-        </p>
-      </Card>
+          <Label>Stage 2 — cross-encoder reranks the shortlist</Label>
+          {reranked.map(d => (
+            <RankedRow
+              key={d.id}
+              rank={d.finalRank}
+              id={d.id}
+              text={d.text}
+              detail={<Movement from={d.retrievalRank} to={d.finalRank} />}
+              score={d.score}
+              scoreColor={scoreColor(d.score)}
+            />
+          ))}
+
+          <Card style={{ marginTop: 16 }}>
+            <Label>What the rerank changed</Label>
+            <p style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6, margin: 0 }}>
+              {moved === 0 ? (
+                <>The cross-encoder agreed with the retriever on all {effectiveK} shortlisted
+                documents — which is common when the query shares vocabulary with the best
+                match. Try rewording the query as a paraphrase that avoids the documents’
+                own words, and the two stages will start to disagree.</>
+              ) : (
+                <>{moved} of {effectiveK} shortlisted documents changed position. Reranking
+                pays off precisely here: the retriever is optimised for recall over the whole
+                corpus, while the cross-encoder sees each candidate alongside the query and
+                can tell a genuine answer from a merely topical one.</>
+              )}
+            </p>
+            <p style={{ fontSize: 12, color: 'var(--text3)', lineHeight: 1.6, marginTop: 8, marginBottom: 0 }}>
+              Note: the score here is a heuristic stand-in for a trained reranker — token-level
+              soft matching blended with whole-text similarity, squashed through a sigmoid. It
+              is directionally faithful, not a real model.
+            </p>
+          </Card>
+        </>
+      )}
     </div>
   )
 }

@@ -1,21 +1,57 @@
 {
   "name": "rag-visualizer",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "private": true,
   "type": "module",
+  "description": "Interactive playground for RAG internals — chunking strategies and retrieval methods computed live in the browser on your own text.",
+  "keywords": [
+    "rag",
+    "retrieval-augmented-generation",
+    "chunking",
+    "reranking",
+    "bm25",
+    "colbert",
+    "embeddings",
+    "visualization"
+  ],
+  "license": "MIT",
+  "author": "SAGARCHRY0777",
+  "homepage": "https://SAGARCHRY0777.github.io/rag-visualizer/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SAGARCHRY0777/rag-visualizer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SAGARCHRY0777/rag-visualizer/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "lint": "eslint .",
+    "test": "node --test",
+    "check": "npm run lint && npm test && npm run build",
+    "shots": "node scripts/screenshots.mjs",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "results": "node scripts/results.mjs"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.13.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^9.13.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
     "gh-pages": "^6.1.1",
+    "globals": "^15.11.0",
+    "playwright-core": "^1.48.0",
     "vite": "^5.1.4"
   }
 }

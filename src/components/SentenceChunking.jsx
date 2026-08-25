@@ -74,10 +74,10 @@ export default function SentenceChunking() {
             <ChunkCard key={idx} borderColor={col.border}>
               <div style={{ marginBottom: 6 }}>
                 <Badge color={col.badge.text} bg={col.badge.bg}>Chunk {idx + 1}</Badge>
-                <Badge color="var(--text3)" bg="rgba(255,255,255,0.05)">
+                <Badge color="var(--text3)" bg="var(--tint)">
                   {chunk.items.length} sentence{chunk.items.length === 1 ? '' : 's'}
                 </Badge>
-                <Badge color="var(--text3)" bg="rgba(255,255,255,0.04)">{tokens} tokens</Badge>
+                <Badge color="var(--text3)" bg="var(--tint)">{tokens} tokens</Badge>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {chunk.items.map((s, si) => {

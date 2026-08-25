@@ -5,10 +5,10 @@ import { QueryPanel, VectorStrip, EmptyState } from './Inputs'
 import { cosineSim, embedText, EMBED_DIMS } from '../lib/retrieval'
 
 function scoreColor(s) {
-  if (s >= 0.6) return '#2dd4a0'
-  if (s >= 0.35) return '#7c6af7'
-  if (s >= 0.15) return '#f5a623'
-  return '#5a5a72'
+  if (s >= 0.6) return 'var(--c2)'
+  if (s >= 0.35) return 'var(--c1)'
+  if (s >= 0.15) return 'var(--c4)'
+  return 'var(--text3)'
 }
 
 export default function BiEncoder() {
@@ -37,7 +37,7 @@ export default function BiEncoder() {
 
       <Card style={{ marginBottom: 16 }}>
         <Label>Query embedding — {EMBED_DIMS} dimensions</Label>
-        <VectorStrip vec={queryVec} color="#a78bfa" height={30} />
+        <VectorStrip vec={queryVec} color="var(--c1-t)" height={30} />
         <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 8, lineHeight: 1.6 }}>
           Each bar is a slice of the vector. Documents whose fingerprint lines up with
           this one score highly. The embedding is a hashed character-trigram bag, so
@@ -51,7 +51,7 @@ export default function BiEncoder() {
         <CompareGrid columns={[
           {
             title: 'Bi-encoder (this tab)',
-            color: '#7c6af7',
+            color: 'var(--c1)',
             points: [
               'Encodes query and docs separately',
               'Doc vectors pre-computed at index time',
@@ -62,7 +62,7 @@ export default function BiEncoder() {
           },
           {
             title: 'Cross-encoder',
-            color: '#2dd4a0',
+            color: 'var(--c2)',
             points: [
               'Encodes (query, doc) as one sequence',
               'Nothing can be pre-computed',

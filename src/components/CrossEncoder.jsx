@@ -5,23 +5,23 @@ import { QueryPanel, EmptyState } from './Inputs'
 import { cosineSim, embedText, crossEncoderScore } from '../lib/retrieval'
 
 function scoreColor(s) {
-  if (s >= 0.8) return '#2dd4a0'
-  if (s >= 0.55) return '#7c6af7'
-  if (s >= 0.3) return '#f5a623'
-  return '#9090a8'
+  if (s >= 0.8) return 'var(--c2)'
+  if (s >= 0.55) return 'var(--c1)'
+  if (s >= 0.3) return 'var(--c4)'
+  return 'var(--text2)'
 }
 
 /** ▲/▼ movement between the retrieval rank and the rerank rank. */
 function Movement({ from, to }) {
   const delta = from - to
   if (delta === 0) {
-    return <Badge color="var(--text3)" bg="rgba(255,255,255,0.05)">— held #{to}</Badge>
+    return <Badge color="var(--text3)" bg="var(--tint)">— held #{to}</Badge>
   }
   const up = delta > 0
   return (
     <Badge
       color={up ? 'var(--teal)' : 'var(--coral)'}
-      bg={up ? 'rgba(45,212,160,0.12)' : 'rgba(249,112,102,0.12)'}
+      bg={up ? 'var(--c2-bg)' : 'var(--c3-bg)'}
     >
       {up ? '▲' : '▼'} {Math.abs(delta)} (#{from} → #{to})
     </Badge>
@@ -70,11 +70,11 @@ export default function CrossEncoder() {
           padding: '10px 12px', color: 'var(--text2)',
           overflowX: 'auto',
         }}>
-          <span style={{ color: '#f97066' }}>[CLS]</span>{' '}
+          <span style={{ color: 'var(--c3)' }}>[CLS]</span>{' '}
           <span style={{ color: 'var(--accent2)' }}>{query || '<your query>'}</span>{' '}
-          <span style={{ color: '#f97066' }}>[SEP]</span>{' '}
+          <span style={{ color: 'var(--c3)' }}>[SEP]</span>{' '}
           <span style={{ color: 'var(--teal)' }}>{'<candidate text>'}</span>{' '}
-          <span style={{ color: '#f97066' }}>[SEP]</span>
+          <span style={{ color: 'var(--c3)' }}>[SEP]</span>
           <div style={{ marginTop: 6, color: 'var(--text3)', fontSize: 11 }}>
             → one transformer pass → sigmoid → score ∈ [0, 1]
           </div>

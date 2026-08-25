@@ -1,21 +1,141 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root {
+/* ---------------------------------------------------------------- themes
+
+   Each theme sets only the nine neutrals and the six-colour ramp. Every tint,
+   badge and readable-on-tint text colour is derived from those with color-mix,
+   so adding a theme means picking fifteen colours and nothing else.
+
+   The ramp carries meaning and must stay mutually distinguishable in every
+   theme: c1 chunking, c2 retrieval/success, c3 split/negative, c4 overlap/BM25,
+   c5 and c6 extra chunk colours.
+*/
+
+:root,
+[data-theme='midnight'] {
   --bg: #0a0a0f;
   --bg2: #111118;
   --bg3: #18181f;
   --bg4: #1e1e28;
-  --border: rgba(255, 255, 255, 0.07);
-  --border2: rgba(255, 255, 255, 0.12);
   --text: #e8e8f0;
   --text2: #9090a8;
   --text3: #5a5a72;
-  --accent: #7c6af7;
-  --accent2: #a78bfa;
-  --teal: #2dd4a0;
-  --coral: #f97066;
-  --amber: #f5a623;
-  --green: #4ade80;
+  --border: rgba(255, 255, 255, 0.07);
+  --border2: rgba(255, 255, 255, 0.12);
+  --c1: #7c6af7;
+  --c2: #2dd4a0;
+  --c3: #f97066;
+  --c4: #f5a623;
+  --c5: #60a5fa;
+  --c6: #e879f9;
+}
+
+[data-theme='slate'] {
+  --bg: #0d1117;
+  --bg2: #131a22;
+  --bg3: #1a222c;
+  --bg4: #222c38;
+  --text: #e4ecf4;
+  --text2: #8b9cad;
+  --text3: #5b6c7d;
+  --border: rgba(255, 255, 255, 0.08);
+  --border2: rgba(255, 255, 255, 0.14);
+  --c1: #6ea8fe;
+  --c2: #3fd0a0;
+  --c3: #ff7b72;
+  --c4: #e3b341;
+  --c5: #a5a2ff;
+  --c6: #f778ba;
+}
+
+[data-theme='ember'] {
+  --bg: #14100e;
+  --bg2: #1c1614;
+  --bg3: #241d19;
+  --bg4: #2e251f;
+  --text: #f2e8e0;
+  --text2: #b09a8a;
+  --text3: #7a675b;
+  --border: rgba(255, 240, 230, 0.08);
+  --border2: rgba(255, 240, 230, 0.15);
+  --c1: #ff9f5a;
+  --c2: #7ac74f;
+  --c3: #ff6b6b;
+  --c4: #ffd166;
+  --c5: #6fb3d2;
+  --c6: #d98cc4;
+}
+
+[data-theme='daylight'] {
+  --bg: #ffffff;
+  --bg2: #f6f7fb;
+  --bg3: #f1f2f8;
+  --bg4: #e6e8f2;
+  --text: #16161d;
+  --text2: #55566b;
+  --text3: #85869c;
+  --border: rgba(20, 20, 40, 0.10);
+  --border2: rgba(20, 20, 40, 0.18);
+  --c1: #5b46e5;
+  --c2: #0f9d76;
+  --c3: #d93a30;
+  --c4: #b47209;
+  --c5: #1f6fd0;
+  --c6: #b3399f;
+}
+
+[data-theme='paper'] {
+  --bg: #faf6ef;
+  --bg2: #f3ede2;
+  --bg3: #efe8db;
+  --bg4: #e5dcca;
+  --text: #2b2418;
+  --text2: #6b5f4c;
+  --text3: #948871;
+  --border: rgba(60, 45, 20, 0.12);
+  --border2: rgba(60, 45, 20, 0.20);
+  --c1: #6b4fbb;
+  --c2: #2f7d5f;
+  --c3: #bf4232;
+  --c4: #9c6b12;
+  --c5: #2c6a9a;
+  --c6: #9c3f7e;
+}
+
+/* Derived once — every theme inherits these. color-mix resolves lazily, so
+   each one picks up the ramp and text colours of the active theme. */
+:root {
+  --c1-t: color-mix(in srgb, var(--c1) 76%, var(--text));
+  --c2-t: color-mix(in srgb, var(--c2) 76%, var(--text));
+  --c3-t: color-mix(in srgb, var(--c3) 76%, var(--text));
+  --c4-t: color-mix(in srgb, var(--c4) 76%, var(--text));
+  --c5-t: color-mix(in srgb, var(--c5) 76%, var(--text));
+  --c6-t: color-mix(in srgb, var(--c6) 76%, var(--text));
+
+  --c1-bg: color-mix(in srgb, var(--c1) 14%, transparent);
+  --c2-bg: color-mix(in srgb, var(--c2) 14%, transparent);
+  --c3-bg: color-mix(in srgb, var(--c3) 14%, transparent);
+  --c4-bg: color-mix(in srgb, var(--c4) 14%, transparent);
+  --c5-bg: color-mix(in srgb, var(--c5) 14%, transparent);
+  --c6-bg: color-mix(in srgb, var(--c6) 14%, transparent);
+
+  --c1-bg2: color-mix(in srgb, var(--c1) 28%, transparent);
+  --c2-bg2: color-mix(in srgb, var(--c2) 28%, transparent);
+  --c3-bg2: color-mix(in srgb, var(--c3) 28%, transparent);
+  --c4-bg2: color-mix(in srgb, var(--c4) 28%, transparent);
+  --c5-bg2: color-mix(in srgb, var(--c5) 28%, transparent);
+  --c6-bg2: color-mix(in srgb, var(--c6) 28%, transparent);
+
+  --tint: color-mix(in srgb, var(--text) 6%, transparent);
+  --tint2: color-mix(in srgb, var(--text) 13%, transparent);
+
+  /* Semantic aliases kept so existing rules read the same. */
+  --accent: var(--c1);
+  --accent2: var(--c1-t);
+  --teal: var(--c2);
+  --coral: var(--c3);
+  --amber: var(--c4);
+
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --display: 'Syne', var(--sans);
@@ -299,3 +419,44 @@ code, .mono { font-family: var(--mono); font-size: 0.85em; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ------------------------------------------------------- theme switcher */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.theme-switcher {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.theme-dot {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 3px;
+  line-height: 0;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.theme-dot:hover { border-color: var(--border2); }
+.theme-dot[data-active='true'] { border-color: var(--c1); }
+
+/* Three stacked slivers previewing the theme's background and two ramp colours. */
+.theme-dot-swatch {
+  display: flex;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border2);
+}
+.theme-dot-swatch i { flex: 1; display: block; }

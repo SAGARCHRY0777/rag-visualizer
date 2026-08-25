@@ -177,7 +177,7 @@ export function QueryPanel({ showDocs = true }) {
 }
 
 /** Draws a vector as a strip of bars — a readable stand-in for 256 raw floats. */
-export function VectorStrip({ vec, color = '#7c6af7', height = 22, label }) {
+export function VectorStrip({ vec, color = 'var(--c1)', height = 22, label }) {
   const bars = projectVector(vec)
   return (
     <div>

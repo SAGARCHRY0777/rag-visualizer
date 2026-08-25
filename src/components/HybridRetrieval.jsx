@@ -77,7 +77,7 @@ export default function HybridRetrieval() {
         <CompareGrid columns={[
           {
             title: 'BM25 wins when…',
-            color: '#f5a623',
+            color: 'var(--c4)',
             points: [
               'Exact keywords matter',
               'Names, codes, identifiers',
@@ -87,7 +87,7 @@ export default function HybridRetrieval() {
           },
           {
             title: 'Dense wins when…',
-            color: '#7c6af7',
+            color: 'var(--c1)',
             points: [
               'The query paraphrases the document',
               'Vocabulary differs entirely',
@@ -108,9 +108,9 @@ export default function HybridRetrieval() {
               <div className="hybrid-head">
                 <span />
                 <span>Document</span>
-                <span style={{ color: '#f5a623' }}>BM25</span>
-                <span style={{ color: '#7c6af7' }}>Dense</span>
-                <span style={{ color: '#2dd4a0' }}>RRF</span>
+                <span style={{ color: 'var(--c4)' }}>BM25</span>
+                <span style={{ color: 'var(--c1)' }}>Dense</span>
+                <span style={{ color: 'var(--c2)' }}>RRF</span>
               </div>
 
               {analysis.fused.map((d, i) => (
@@ -128,20 +128,20 @@ export default function HybridRetrieval() {
                         className="bar-fill"
                         style={{
                           width: `${Math.round((d.score / analysis.winner.score) * 100)}%`,
-                          height: '100%', background: '#2dd4a0', borderRadius: 2,
+                          height: '100%', background: 'var(--c2)', borderRadius: 2,
                         }}
                       />
                     </div>
                   </div>
-                  <span className="hybrid-cell" style={{ color: '#f5a623' }}>
+                  <span className="hybrid-cell" style={{ color: 'var(--c4)' }}>
                     #{d.bm25Rank}
                     <em>{d.bm25Score.toFixed(2)}</em>
                   </span>
-                  <span className="hybrid-cell" style={{ color: '#7c6af7' }}>
+                  <span className="hybrid-cell" style={{ color: 'var(--c1)' }}>
                     #{d.denseRank}
                     <em>{d.denseScore.toFixed(2)}</em>
                   </span>
-                  <span className="hybrid-cell" style={{ color: '#2dd4a0' }}>
+                  <span className="hybrid-cell" style={{ color: 'var(--c2)' }}>
                     {d.score.toFixed(4)}
                   </span>
                 </div>
@@ -152,11 +152,11 @@ export default function HybridRetrieval() {
           <Card style={{ marginTop: 16 }}>
             <Label>Why {analysis.winner.id} wins</Label>
             <p style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6, margin: 0 }}>
-              {analysis.winner.id} placed <strong style={{ color: '#f5a623' }}>#{analysis.winner.bm25Rank}</strong> in
-              BM25 and <strong style={{ color: '#7c6af7' }}>#{analysis.winner.denseRank}</strong> in dense retrieval,
+              {analysis.winner.id} placed <strong style={{ color: 'var(--c4)' }}>#{analysis.winner.bm25Rank}</strong> in
+              BM25 and <strong style={{ color: 'var(--c1)' }}>#{analysis.winner.denseRank}</strong> in dense retrieval,
               contributing 1/({k}+{analysis.winner.bm25Rank}) = {rrf(analysis.winner.bm25Rank, k).toFixed(5)} and
               1/({k}+{analysis.winner.denseRank}) = {rrf(analysis.winner.denseRank, k).toFixed(5)} for a fused{' '}
-              <strong style={{ color: '#2dd4a0' }}>{analysis.winner.score.toFixed(5)}</strong>.
+              <strong style={{ color: 'var(--c2)' }}>{analysis.winner.score.toFixed(5)}</strong>.
               {analysis.runnerUp && (
                 <>
                   {' '}Runner-up {analysis.runnerUp.id} scored {analysis.runnerUp.score.toFixed(5)} from
@@ -196,7 +196,7 @@ export default function HybridRetrieval() {
                           <span key={t.term} style={{
                             fontFamily: 'var(--mono)', fontSize: 11,
                             padding: '2px 7px', borderRadius: 5,
-                            background: 'rgba(245,166,35,0.12)', color: '#f5a623',
+                            background: 'var(--c4-bg)', color: 'var(--c4)',
                           }}>
                             {t.term} ×{t.tf} → {t.contribution.toFixed(2)}
                           </span>

@@ -34,6 +34,9 @@ const SHOTS = [
   { id: 'hybrid', height: 1400 },
 ]
 
+// One representative view per theme, for the README's theme gallery.
+const THEMES = ['midnight', 'slate', 'ember', 'daylight', 'paper']
+
 function waitForServer(url, timeoutMs = 30_000) {
   const deadline = Date.now() + timeoutMs
   return new Promise((resolve, reject) => {
@@ -76,6 +79,23 @@ try {
     await page.waitForTimeout(400)
     await page.screenshot({ path: `${OUT}/${shot.id}.png` })
     console.log(`captured ${shot.id}.png`)
+    await page.close()
+  }
+  mkdirSync(`${OUT}/themes`, { recursive: true })
+  for (const theme of THEMES) {
+    const page = await browser.newPage({
+      viewport: { width: 1180, height: 900 },
+      deviceScaleFactor: 2,
+    })
+    await page.goto(`${BASE}#/semantic`, { waitUntil: 'networkidle' })
+    await page.evaluate(t => {
+      localStorage.setItem('rag-visualizer:theme', t)
+      document.documentElement.setAttribute('data-theme', t)
+    }, theme)
+    await page.evaluate(() => document.fonts.ready)
+    await page.waitForTimeout(400)
+    await page.screenshot({ path: `${OUT}/themes/${theme}.png` })
+    console.log(`captured themes/${theme}.png`)
     await page.close()
   }
 } finally {

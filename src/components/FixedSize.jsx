@@ -87,18 +87,18 @@ export default function FixedSize() {
             <ChunkCard key={idx} borderColor={col.border}>
               <div style={{ marginBottom: 6 }}>
                 <Badge color={col.badge.text} bg={col.badge.bg}>Chunk {idx + 1}</Badge>
-                <Badge color="var(--text3)" bg="rgba(255,255,255,0.05)">{chunk.tokens.length} tokens</Badge>
-                <Badge color="var(--text3)" bg="rgba(255,255,255,0.04)">
+                <Badge color="var(--text3)" bg="var(--tint)">{chunk.tokens.length} tokens</Badge>
+                <Badge color="var(--text3)" bg="var(--tint)">
                   t{chunk.start}–{chunk.start + chunk.tokens.length - 1}
                 </Badge>
                 {overlapCount > 0 && (
-                  <Badge color="var(--amber)" bg="rgba(245,166,35,0.1)">↺ {overlapCount}t repeated</Badge>
+                  <Badge color="var(--amber)" bg="var(--c4-bg)">↺ {overlapCount}t repeated</Badge>
                 )}
               </div>
               <span style={{ color: 'var(--text2)' }}>
                 {overlapCount > 0 && (
                   <mark style={{
-                    background: 'rgba(245,166,35,0.16)',
+                    background: 'var(--c4-bg)',
                     color: 'var(--amber)',
                     borderRadius: 3,
                     padding: '0 2px',

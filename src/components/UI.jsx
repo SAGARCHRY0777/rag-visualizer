@@ -1,6 +1,6 @@
 import { useId } from 'react'
 
-export function ScoreBar({ score, max = 1, color = '#7c6af7', digits = 3 }) {
+export function ScoreBar({ score, max = 1, color = 'var(--c1)', digits = 3 }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, Math.round((score / max) * 100))) : 0
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
@@ -21,11 +21,11 @@ export function ScoreBar({ score, max = 1, color = '#7c6af7', digits = 3 }) {
 }
 
 const RANK_COLORS = [
-  { bg: 'rgba(124,106,247,0.2)', text: '#a78bfa' },
-  { bg: 'rgba(45,212,160,0.2)', text: '#2dd4a0' },
-  { bg: 'rgba(245,166,35,0.2)', text: '#f5a623' },
-  { bg: 'rgba(144,144,168,0.15)', text: '#9090a8' },
-  { bg: 'rgba(144,144,168,0.1)', text: '#5a5a72' },
+  { bg: 'var(--c1-bg2)', text: 'var(--c1-t)' },
+  { bg: 'var(--c2-bg2)', text: 'var(--c2)' },
+  { bg: 'var(--c4-bg2)', text: 'var(--c4)' },
+  { bg: 'var(--tint2)', text: 'var(--text2)' },
+  { bg: 'var(--tint)', text: 'var(--text3)' },
 ]
 
 export function RankBadge({ rank }) {
@@ -44,7 +44,7 @@ export function RankBadge({ rank }) {
   )
 }
 
-export function Badge({ children, color = '#7c6af7', bg }) {
+export function Badge({ children, color = 'var(--c1)', bg }) {
   return (
     <span style={{
       display: 'inline-block',
@@ -170,7 +170,7 @@ export function RankedRow({ rank, id, text, detail, score, scoreColor, scoreMax 
       <div style={{ flex: 1, minWidth: 0 }}>
         {id && (
           <div style={{ marginBottom: 4 }}>
-            <Badge color="var(--text3)" bg="rgba(255,255,255,0.05)">{id}</Badge>
+            <Badge color="var(--text3)" bg="var(--tint)">{id}</Badge>
           </div>
         )}
         <div style={{ fontSize: 13, color: 'var(--text)', marginBottom: 5, lineHeight: 1.5 }}>{text}</div>

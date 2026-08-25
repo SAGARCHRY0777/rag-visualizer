@@ -9,7 +9,7 @@
       content="An interactive playground for RAG internals: paste your own text and watch fixed-size, sentence, semantic and hierarchical chunking, then score it with bi-encoder, cross-encoder, ColBERT and BM25+dense hybrid retrieval. Every number is computed in your browser."
     />
     <meta name="theme-color" content="#0a0a0f" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="dark light" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content="RAG Visualizer" />
@@ -31,6 +31,21 @@
       href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // Applied before first paint so the page never flashes the default theme.
+      (function () {
+        try {
+          var saved = localStorage.getItem('rag-visualizer:theme')
+          var ok = ['midnight', 'slate', 'ember', 'daylight', 'paper']
+          if (ok.indexOf(saved) === -1) {
+            saved = matchMedia('(prefers-color-scheme: light)').matches ? 'daylight' : 'midnight'
+          }
+          document.documentElement.setAttribute('data-theme', saved)
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'midnight')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

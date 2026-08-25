@@ -96,10 +96,10 @@ export default function SemanticChunking() {
                 return (
                   <div key={i} title={`S${i + 1} → S${i + 2}: ${s.toFixed(3)}`} style={{
                     fontSize: 11, padding: '3px 8px', borderRadius: 99,
-                    background: isSplit ? 'rgba(249,112,102,0.15)' : 'rgba(45,212,160,0.1)',
-                    color: isSplit ? '#f97066' : '#2dd4a0',
+                    background: isSplit ? 'var(--c3-bg)' : 'var(--c2-bg)',
+                    color: isSplit ? 'var(--c3)' : 'var(--c2)',
                     fontFamily: 'var(--mono)',
-                    border: `1px solid ${isSplit ? 'rgba(249,112,102,0.3)' : 'rgba(45,212,160,0.2)'}`,
+                    border: `1px solid ${isSplit ? 'var(--c3-bg2)' : 'var(--c2-bg2)'}`,
                   }}>
                     S{i + 1}↔S{i + 2}: {s.toFixed(2)}{isSplit ? ' ✂' : ''}
                   </div>
@@ -124,9 +124,9 @@ export default function SemanticChunking() {
                 <div style={{ marginBottom: 6 }}>
                   <Badge color={col.badge.text} bg={col.badge.bg}>Chunk {idx + 1}</Badge>
                   {terms.length > 0 && (
-                    <Badge color="var(--text2)" bg="rgba(255,255,255,0.05)">{terms.join(' · ')}</Badge>
+                    <Badge color="var(--text2)" bg="var(--tint)">{terms.join(' · ')}</Badge>
                   )}
-                  <Badge color="var(--text3)" bg="rgba(255,255,255,0.04)">
+                  <Badge color="var(--text3)" bg="var(--tint)">
                     S{indices[0] + 1}–S{indices[indices.length - 1] + 1}
                   </Badge>
                 </div>

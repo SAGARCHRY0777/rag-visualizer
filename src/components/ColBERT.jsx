@@ -5,10 +5,10 @@ import { QueryPanel, EmptyState } from './Inputs'
 import { maxSim } from '../lib/retrieval'
 
 function simColor(s) {
-  if (s >= 0.7) return '#2dd4a0'
-  if (s >= 0.4) return '#7c6af7'
-  if (s >= 0.15) return '#f5a623'
-  return '#5a5a72'
+  if (s >= 0.7) return 'var(--c2)'
+  if (s >= 0.4) return 'var(--c1)'
+  if (s >= 0.15) return 'var(--c4)'
+  return 'var(--text3)'
 }
 
 export default function ColBERT() {
@@ -63,9 +63,9 @@ export default function ColBERT() {
                   aria-pressed={selected === i}
                   className="token-btn"
                   style={{
-                    background: selected === i ? 'rgba(124,106,247,0.3)' : 'rgba(124,106,247,0.1)',
-                    color: selected === i ? '#a78bfa' : '#7c6af7',
-                    borderColor: selected === i ? '#7c6af7' : 'rgba(124,106,247,0.2)',
+                    background: selected === i ? 'var(--c1-bg2)' : 'var(--c1-bg)',
+                    color: selected === i ? 'var(--c1-t)' : 'var(--c1)',
+                    borderColor: selected === i ? 'var(--c1)' : 'var(--c1-bg2)',
                   }}
                 >
                   {t}
@@ -79,7 +79,7 @@ export default function ColBERT() {
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 12 }}>
                 <RankBadge rank={di + 1} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <Badge color="var(--text3)" bg="rgba(255,255,255,0.05)">{doc.id}</Badge>
+                  <Badge color="var(--text3)" bg="var(--tint)">{doc.id}</Badge>
                   <span style={{ fontSize: 13, color: 'var(--text)' }}>{doc.text}</span>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -98,7 +98,7 @@ export default function ColBERT() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {doc.perToken.map((p, qi) => (
                       <div key={qi} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
-                        <span style={{ fontFamily: 'var(--mono)', fontSize: 12, color: '#7c6af7', minWidth: 70, wordBreak: 'break-all' }}>
+                        <span style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--c1)', minWidth: 70, wordBreak: 'break-all' }}>
                           {p.queryToken}
                         </span>
                         <div style={{ flex: 1, height: 6, background: 'var(--bg4)', borderRadius: 3, overflow: 'hidden', minWidth: 40 }}>
@@ -136,8 +136,8 @@ export default function ColBERT() {
                           style={{
                             fontFamily: 'var(--mono)', fontSize: 11,
                             padding: '3px 7px', borderRadius: 5,
-                            background: `rgba(45,212,160,${(sim * 0.55).toFixed(3)})`,
-                            border: `1px solid ${isBest ? '#2dd4a0' : 'transparent'}`,
+                            background: `color-mix(in srgb, var(--c2) ${(sim * 55).toFixed(1)}%, transparent)`,
+                            border: `1px solid ${isBest ? 'var(--c2)' : 'transparent'}`,
                             color: sim > 0.35 ? 'var(--text)' : 'var(--text3)',
                           }}
                         >
@@ -149,7 +149,7 @@ export default function ColBERT() {
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 8 }}>
                     Best match:{' '}
-                    <strong style={{ color: '#2dd4a0' }}>
+                    <strong style={{ color: 'var(--c2)' }}>
                       “{doc.perToken[selected].matchedToken}”
                     </strong>{' '}
                     at {doc.perToken[selected].sim.toFixed(3)} — only this value enters the sum.

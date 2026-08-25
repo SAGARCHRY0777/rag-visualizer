@@ -8,6 +8,7 @@ import BiEncoder from './components/BiEncoder'
 import ColBERT from './components/ColBERT'
 import HybridRetrieval from './components/HybridRetrieval'
 import { CorpusProvider } from './state/CorpusContext'
+import ThemeSwitcher from './components/ThemeSwitcher'
 
 const REPO_URL = 'https://github.com/SAGARCHRY0777/rag-visualizer'
 
@@ -23,8 +24,8 @@ const TABS = [
 ]
 
 const GROUPS = {
-  chunking: { accent: '#7c6af7', bg: 'rgba(124,106,247,0.12)', label: 'Chunking' },
-  retrieval: { accent: '#2dd4a0', bg: 'rgba(45,212,160,0.12)', label: 'Retrieval' },
+  chunking: { accent: 'var(--c1)', bg: 'var(--c1-bg)', label: 'Chunking' },
+  retrieval: { accent: 'var(--c2)', bg: 'var(--c2-bg)', label: 'Retrieval' },
 }
 
 const GROUP_ORDER = ['chunking', 'retrieval']
@@ -97,14 +98,17 @@ export default function App() {
                   chunking · retrieval · reranking
                 </span>
               </div>
-              <a
-                href={REPO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ghost-btn"
-              >
-                GitHub ↗
-              </a>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <ThemeSwitcher />
+                <a
+                  href={REPO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ghost-btn"
+                >
+                  GitHub ↗
+                </a>
+              </div>
             </div>
 
             <div className="tabstrip" role="tablist" aria-label="Visualisation" onKeyDown={onTabKeyDown}>

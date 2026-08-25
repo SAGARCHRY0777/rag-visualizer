@@ -21,8 +21,33 @@ your browser from whatever you type.
 | **Switch corpora** | Three built-in sample corpora (immunology, databases, climate) to see how the same method behaves on different vocabulary. |
 | **Deep-link a tab** | Every view has its own URL (`#/colbert`), so a specific visualisation can be linked or bookmarked. |
 | **Keep your work** | The document, query and candidate set persist across reloads. |
+| **Pick a theme** | Five palettes, light and dark. Your choice is remembered and applied before first paint, so there's no flash on load. |
 
 Your edits stay on your machine — they are kept in `localStorage` and never sent anywhere.
+
+---
+
+## Themes
+
+The switcher sits in the header. On a first visit the theme follows your
+system's light/dark preference.
+
+| | | |
+|:---:|:---:|:---:|
+| ![Midnight](docs/screenshots/themes/midnight.png) | ![Slate](docs/screenshots/themes/slate.png) | ![Ember](docs/screenshots/themes/ember.png) |
+| **Midnight** — default dark | **Slate** — cool neutral dark | **Ember** — warm dark |
+| ![Daylight](docs/screenshots/themes/daylight.png) | ![Paper](docs/screenshots/themes/paper.png) | |
+| **Daylight** — clean light | **Paper** — warm light | |
+
+Each theme defines only **fifteen values**: nine neutrals and a six-colour ramp.
+Every badge tint, border and readable-on-tint text colour is derived from those
+with `color-mix()`, including against `--text` — so the same rule darkens in a
+light theme and lightens in a dark one automatically. Adding a theme is one
+fifteen-line block in [src/index.css](src/index.css); nothing else changes.
+
+The ramp carries meaning and stays distinguishable in every theme: `c1`
+chunking, `c2` retrieval and success, `c3` splits and negatives, `c4` overlap
+and BM25, `c5`/`c6` further chunk colours.
 
 ---
 

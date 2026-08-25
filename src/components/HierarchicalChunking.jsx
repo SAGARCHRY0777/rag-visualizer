@@ -150,11 +150,11 @@ export default function HierarchicalChunking() {
               >
                 <span style={{ textAlign: 'left' }}>
                   <Badge color={p.color.badge.text} bg={p.color.badge.bg}>Parent {pi + 1}</Badge>
-                  <Badge color="var(--text3)" bg="rgba(255,255,255,0.05)">
+                  <Badge color="var(--text3)" bg="var(--tint)">
                     {p.indices.length} leaf chunk{p.indices.length === 1 ? '' : 's'}
                   </Badge>
                   {isWinner && (
-                    <Badge color="var(--teal)" bg="rgba(45,212,160,0.12)">✓ query match</Badge>
+                    <Badge color="var(--teal)" bg="var(--c2-bg)">✓ query match</Badge>
                   )}
                 </span>
                 <span style={{ fontSize: 12, color: 'var(--text3)', fontFamily: 'var(--mono)', flexShrink: 0 }}>
@@ -197,7 +197,7 @@ export default function HierarchicalChunking() {
                   </span>
                   <ScoreBar
                     score={ps.score}
-                    color={ps.i === drill.winner.i ? '#2dd4a0' : '#5a5a72'}
+                    color={ps.i === drill.winner.i ? 'var(--c2)' : 'var(--text3)'}
                   />
                 </div>
               ))}
@@ -209,7 +209,7 @@ export default function HierarchicalChunking() {
                   <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text3)', minWidth: 62 }}>
                     S{ls.si + 1}
                   </span>
-                  <ScoreBar score={ls.score} color={ls === drill.leafScores[0] ? '#7c6af7' : '#5a5a72'} />
+                  <ScoreBar score={ls.score} color={ls === drill.leafScores[0] ? 'var(--c1)' : 'var(--text3)'} />
                 </div>
               ))}
             </Step>

@@ -9,6 +9,7 @@ import ColBERT from './components/ColBERT'
 import HybridRetrieval from './components/HybridRetrieval'
 import { CorpusProvider } from './state/CorpusContext'
 import ThemeSwitcher from './components/ThemeSwitcher'
+import StarButton from './components/StarButton.jsx'
 
 const REPO_URL = 'https://github.com/SAGARCHRY0777/rag-visualizer'
 
@@ -100,14 +101,7 @@ export default function App() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <ThemeSwitcher />
-                <a
-                  href={REPO_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ghost-btn"
-                >
-                  GitHub ↗
-                </a>
+                <StarButton />
               </div>
             </div>
 

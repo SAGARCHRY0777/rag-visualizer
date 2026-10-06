@@ -60,6 +60,19 @@ test('splitSentences splits on . ! ? and keeps an unterminated tail', () => {
     splitSentences('Antibodies bind the virus.  Do they persist? Yes!! Memory cells remain'),
     ['Antibodies bind the virus.', 'Do they persist?', 'Yes!!', 'Memory cells remain'],
   )
+
+  // Leading . ! or ? is skipped by the split pattern. The old implementation
+  // derived the tail offset from the joined match length, so the skipped
+  // characters shifted it and the tail duplicated the end of the last
+  // sentence -- '!! Hi there.' came back as ['Hi there.', 'e.'].
+  assert.deepEqual(splitSentences('!! Hi there.'), ['Hi there.'])
+  assert.deepEqual(splitSentences('...Hello. World.'), ['Hello.', 'World.'])
+  assert.deepEqual(splitSentences('?Why. Because'), ['Why.', 'Because'])
+
+  // Leading punctuation is dropped -- it is not a sentence. Input that is
+  // ONLY punctuation still comes back as a fragment rather than vanishing,
+  // because a splitter that silently eats its input is the worse bug.
+  assert.deepEqual(splitSentences('!?.'), ['!?.'])
   assert.deepEqual(splitSentences(''), [])
   assert.deepEqual(splitSentences('   \n\t  '), [])
 })

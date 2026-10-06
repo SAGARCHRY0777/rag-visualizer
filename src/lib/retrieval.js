@@ -33,12 +33,20 @@ export function contentTokens(text) {
 export function splitSentences(text) {
   const trimmed = String(text).trim()
   if (!trimmed) return []
-  const matched = trimmed.match(/[^.!?]+[.!?]+/g) ?? []
-  const consumed = matched.join('').length
-  const tail = trimmed.slice(consumed).trim()
-  const out = matched.map(s => s.trim()).filter(Boolean)
+  // `matched.join('').length` was used as an offset into `trimmed`, which only
+  // holds while the matches start at 0 and are contiguous. Text opening with
+  // . ! or ? is skipped by the pattern, so the offset ran short and the tail
+  // re-emitted the end of a sentence already in the list. Track the real end
+  // of the last match instead.
+  const out = []
+  let end = 0
+  for (const m of trimmed.matchAll(/[^.!?]+[.!?]+/g)) {
+    out.push(m[0].trim())
+    end = m.index + m[0].length
+  }
+  const tail = trimmed.slice(end).trim()
   if (tail) out.push(tail)
-  return out
+  return out.filter(Boolean)
 }
 
 /** FNV-1a — small, fast, and stable across reloads so scores never drift. */

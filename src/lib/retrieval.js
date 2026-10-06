@@ -240,7 +240,11 @@ export function rrf(rank, k = RRF_K) {
 /** Dense-ranking helper: 1-based ranks after sorting descending by `key`. */
 export function rankBy(items, key) {
   return [...items]
-    .sort((a, b) => key(b) - key(a))
+    // Ties broke by input order, so the same documents entered in a different
+    // order produced different ranks -- and RRF fuses on rank, so the fused
+    // ranking moved too. Tie-break on id to make the ranking a function of the
+    // documents rather than of the order they happened to arrive in.
+    .sort((a, b) => key(b) - key(a) || String(a.id ?? '').localeCompare(String(b.id ?? '')))
     .map((item, i) => ({ ...item, rank: i + 1 }))
 }
 

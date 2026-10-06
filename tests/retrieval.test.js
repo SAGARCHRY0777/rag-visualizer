@@ -221,6 +221,15 @@ test('rrf, rankBy and fuseRRF implement reciprocal rank fusion exactly', () => {
   assert.deepEqual(ranked.map(r => r.id), ['vaccine', 'immune-memory', 'markets'])
   assert.deepEqual(ranked.map(r => r.rank), [1, 2, 3])
 
+  // Documents that tie on score used to be ranked by whichever arrived first,
+  // so the same corpus pasted in a different order produced a different
+  // ranking -- and because RRF fuses on rank, the fused order moved with it.
+  const tied = [{ id: 'b', s: 5 }, { id: 'a', s: 5 }, { id: 'c', s: 5 }]
+  const forward = rankBy(tied, x => x.s).map(r => r.id)
+  const reversed = rankBy([...tied].reverse(), x => x.s).map(r => r.id)
+  assert.deepEqual(forward, reversed, 'ranking must not depend on input order')
+  assert.deepEqual(forward, ['a', 'b', 'c'])
+
   const fused = fuseRRF(
     ['vaccine', 'immune-memory'],
     [

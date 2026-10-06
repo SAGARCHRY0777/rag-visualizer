@@ -32,20 +32,35 @@ const GROUPS = {
 const GROUP_ORDER = ['chunking', 'retrieval']
 const DEFAULT_TAB = TABS[0].id
 
+/**
+ * The tab this hash names, or null if the hash is not a route.
+ *
+ * Returning a tab for every hash meant any in-page anchor was read as a route:
+ * the "Skip to content" link sets #main, which matched no tab, so the app fell
+ * back to the first one and the skip link silently reset the visualisation.
+ * Only #/... belongs to the router; everything else is left alone.
+ */
 function tabFromHash() {
-  if (typeof window === 'undefined') return DEFAULT_TAB
-  const id = window.location.hash.replace(/^#\/?/, '')
-  return TABS.some(t => t.id === id) ? id : DEFAULT_TAB
+  if (typeof window === 'undefined') return null
+  const hash = window.location.hash
+  if (!hash.startsWith('#/')) return null
+  const id = hash.slice(2)
+  return TABS.some(t => t.id === id) ? id : null
 }
 
 export default function App() {
-  const [active, setActive] = useState(tabFromHash)
+  const [active, setActive] = useState(() => tabFromHash() ?? DEFAULT_TAB)
   const tabRefs = useRef({})
 
   // The hash is the source of truth, so a tab can be linked to and survives a
   // reload or a back/forward navigation.
   useEffect(() => {
-    const onHashChange = () => setActive(tabFromHash())
+    // Ignore hashes the router does not own, so an in-page anchor cannot
+    // knock the user off the tab they are on.
+    const onHashChange = () => {
+      const id = tabFromHash()
+      if (id) setActive(id)
+    }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])

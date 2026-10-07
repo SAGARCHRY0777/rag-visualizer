@@ -29,3 +29,14 @@ updates:
         patterns: ["vite", "@vitejs/*", "eslint*", "@eslint/*", "globals", "typescript", "playwright*"]
       runtime:
         patterns: ["react", "react-dom", "marked", "gh-pages"]
+    # Held on eslint 9.x ON PURPOSE. eslint-plugin-react caps its peer range at
+    # `^9.7` and 7.37.5 is the newest release that exists, so there is no
+    # version of it that tolerates eslint 10 -- `npm ci` fails ERESOLVE before
+    # the lint step even runs. Without this, dependabot proposes the same
+    # unmergeable bump every month. Drop both entries once eslint-plugin-react
+    # ships an eslint 10 peer range.
+    ignore:
+      - dependency-name: "eslint"
+        versions: [">=10"]
+      - dependency-name: "@eslint/js"
+        versions: [">=10"]

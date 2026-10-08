@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Visualizer — Chunking, Retrieval &amp; Reranking</title>
+    <meta
+      name="description"
+      content="An interactive playground for RAG internals: paste your own text and watch fixed-size, sentence, semantic and hierarchical chunking, then score it with bi-encoder, cross-encoder, ColBERT and BM25+dense hybrid retrieval. Every number is computed in your browser."
+    />
+    <meta name="theme-color" content="#0a0a0f" />
+    <meta name="color-scheme" content="dark light" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="RAG Visualizer" />
+    <meta
+      property="og:description"
+      content="Interactive RAG playground — chunking strategies and retrieval methods computed live on your own text."
+    />
+    <meta property="og:url" content="https://SAGARCHRY0777.github.io/rag-visualizer/" />
+    <meta name="twitter:card" content="summary" />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0f'/%3E%3Crect x='6' y='7' width='20' height='4' rx='2' fill='%237c6af7'/%3E%3Crect x='6' y='14' width='14' height='4' rx='2' fill='%232dd4a0'/%3E%3Crect x='6' y='21' width='9' height='4' rx='2' fill='%23f5a623'/%3E%3C/svg%3E"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Applied before first paint so the page never flashes the default theme.
+      (function () {
+        try {
+          var saved = localStorage.getItem('rag-visualizer:theme')
+          var ok = ['midnight', 'slate', 'ember', 'daylight', 'paper']
+          if (ok.indexOf(saved) === -1) {
+            saved = matchMedia('(prefers-color-scheme: light)').matches ? 'daylight' : 'midnight'
+          }
+          document.documentElement.setAttribute('data-theme', saved)
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'midnight')
+        }
+      })()
+    </script>
+    <script type="module" crossorigin src="/rag-visualizer/assets/index-CLacHz92.js"></script>
+    <link rel="stylesheet" crossorigin href="/rag-visualizer/assets/index-DGylFvBN.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      RAG Visualizer computes every chunk boundary and similarity score in the browser,
+      so it needs JavaScript enabled.
+    </noscript>
+  </body>
+</html>
